@@ -1,78 +1,153 @@
-# AI Bug Report Assistant
+# BugLens
+
+AI-powered QA assistant that transforms raw bug descriptions into structured bug reports, AI-driven insights, and professional test cases in seconds.
+
+---
 
 ## Overview
 
-AI-powered tool that converts raw issue descriptions into structured, professional bug reports.
+BugLens helps QA Engineers accelerate bug reporting, triage, and test design activities using AI assistance while keeping humans in control of final decisions.
 
----
+The project follows the principle:
 
-## Problem
+> AI Recommendation + Human Validation
 
-Writing bug reports manually is repetitive and time-consuming, and testers may miss important details under pressure.
-
----
-
-## Solution
-
-This tool allows QA engineers to:
-
-* Enter a simple issue description
-* Generate a complete, structured bug report instantly
+AI provides suggestions and recommendations while QA Engineers remain responsible for final decisions.
 
 ---
 
 ## Features
 
-* Generate bug reports from plain text
-* Structured output:
+### Bug Report Generation
 
-  * Title
-  * Steps to Reproduce
-  * Expected Result
-  * Actual Result
-  * Severity & Priority
-* Environment selection (Platform, OS, Browser)
-* Input validation to prevent empty or weak reports
-* Copy-ready output for Jira / Azure DevOps
+Generate structured bug reports from natural language descriptions including:
 
----
-
-## Tech Stack
-
-* Frontend: React + Vite + Tailwind
-* Backend: Node.js + Express
-* AI: Mock AI (ready for OpenAI integration)
+- Title
+- Preconditions
+- Steps to Reproduce
+- Expected Result
+- Actual Result
+- Severity
+- Priority
 
 ---
 
-## How to Run
+### AI Insights
+
+Optional AI-powered recommendations:
+
+- Severity Recommendation
+- Priority Recommendation
+- Root Cause Suggestions
+- Suggested Fixes
+- Regression Scope Analysis
+- Confidence Score
+- Reasoning Summary
+
+---
+
+### Test Case Generation
+
+Generate professional:
+
+- Positive Test Cases
+- Negative Test Cases
+- Edge Cases
+- Regression Test Cases
+
+---
+
+### Export & Integration
+
+- Copy for Jira
+- Copy for Azure DevOps
+- Export JSON
+- Copy Test Cases
+
+---
+
+### Environment Context
+
+Capture execution context:
+
+- Platform
+- Operating System
+- Browser Information
+
+---
+
+## Architecture
+
+Frontend:
+
+- React
+- Vite
+- Tailwind CSS
+
+Backend:
+
+- Node.js
+- Express.js
+
+AI Layer:
+
+- LLM-powered generation services
+- Structured JSON validation
+- AI recommendation engine
+
+---
+
+## Design Principles
+
+### AI Recommendation + Human Validation
+
+AI suggestions are recommendations only and should never replace QA judgement.
+
+### Optional AI Assistance
+
+Users can choose which AI capabilities to execute:
+
+- Severity
+- Priority
+- Root Cause
+- Suggested Fixes
+- Regression Scope
+
+This reduces token usage and allows lightweight workflows.
+
+---
+
+## Installation
 
 ### Frontend
 
+```bash
 npm install
 npm run dev
+```
 
 ### Backend
 
+```bash
 cd backend
 npm install
 node server.js
+```
 
 ---
 
-## Example
+## Future Roadmap
 
-Input:
-"Login button not working after clicking"
-
-Output:
-
-* Title: Login functionality not working
-* Steps: Navigate → Enter credentials → Click login → Observe result
-* Severity: High
+- Screenshot Analysis
+- Console Log Analysis
+- Network Request Analysis
+- HAR File Support
+- Jira Integration
+- Accessibility Suggestions
+- Performance Recommendations
 
 ---
 
 ## Author
 
-Built by a QA Engineer to improve bug reporting workflows using modern AI concepts.
+Built by a QA Engineer to modernize software testing workflows using AI-assisted quality engineering.
