@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import bugRoutes from "./routes/bugRoutes.js";
+import testCaseRoutes from "./routes/testCaseRoutes.js";
+import aiInsightsRoutes from "./routes/aiInsightsRoutes.js";
 
 dotenv.config();
 
@@ -16,6 +18,8 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/", bugRoutes);
+app.use("/", testCaseRoutes);
+app.use("/", aiInsightsRoutes);
 
 app.use((err, _req, res, _next) => {
   const status = err.statusCode || 500;

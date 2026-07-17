@@ -23,3 +23,53 @@
     @apply bg-indigo-200 text-slate-950 dark:bg-indigo-500/40 dark:text-white;
   }
 }
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 420ms ease both;
+  }
+
+  .animate-toast-in {
+    animation: toast-in 260ms ease both;
+  }
+
+  .animation-delay-75 {
+    animation-delay: 75ms;
+  }
+
+  .animation-delay-150 {
+    animation-delay: 150ms;
+  }
+
+  .animation-delay-225 {
+    animation-delay: 225ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
