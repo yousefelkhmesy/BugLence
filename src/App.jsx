@@ -11,6 +11,8 @@ const apiUrl = "/api/generate-bug";
 const testCaseApiUrl = "/api/generate-test-cases";
 const aiInsightsApiUrl = "/api/ai-insights";
 
+const maxDescriptionLength = 500;
+
 const initialForm = {
   description: "",
   platform: "Web",
