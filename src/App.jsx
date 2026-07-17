@@ -7,10 +7,9 @@ import AiInsightsCard from "./components/AiInsightsCard";
 import { detectBrowser } from "./utils/browser";
 import { useTheme } from "./hooks/useTheme";
 
-const apiUrl = "http://localhost:5000/generate-bug";
-const testCaseApiUrl = "http://localhost:5000/generate-test-cases";
-const aiInsightsApiUrl = "http://localhost:5000/api/ai-insights";
-const maxDescriptionLength = 500;
+const apiUrl = "/api/generate-bug";
+const testCaseApiUrl = "/api/generate-test-cases";
+const aiInsightsApiUrl = "/api/ai-insights";
 
 const initialForm = {
   description: "",
