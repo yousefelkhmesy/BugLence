@@ -7,7 +7,7 @@ import AiInsightsCard from "./components/AiInsightsCard";
 import { detectBrowser } from "./utils/browser";
 import { useTheme } from "./hooks/useTheme";
 
-const apiUrl = "/api/generate-bug";
+const apiUrl = "/api/apigenerate-bug";
 const testCaseApiUrl = "/api/generate-test-cases";
 const aiInsightsApiUrl = "/api/ai-insights";
 
