@@ -249,3 +249,56 @@ export function validateRequirementAnalysisRequest(payload) {
     },
   };
 }
+export function validateRequirementTestCasesRequest(payload) {
+  const context = normalizeString(payload?.context);
+
+  const testTypes =
+    payload?.testTypes &&
+    typeof payload.testTypes === "object" &&
+    !Array.isArray(payload.testTypes)
+      ? payload.testTypes
+      : {};
+
+  const normalizedTestTypes = {
+    positive: Boolean(testTypes.positive),
+    negative: Boolean(testTypes.negative),
+    edge: Boolean(testTypes.edge),
+    regression: Boolean(testTypes.regression),
+  };
+
+  if (!context) {
+    return {
+      error: "Test context is required.",
+      statusCode: 400,
+    };
+  }
+
+  if (context.length < 10) {
+    return {
+      error: "Test context must be at least 10 characters.",
+      statusCode: 400,
+    };
+  }
+
+  if (context.length > 5000) {
+    return {
+      error: "Test context must not exceed 5000 characters.",
+      statusCode: 400,
+    };
+  }
+
+  if (!Object.values(normalizedTestTypes).some(Boolean)) {
+    return {
+      error: "Select at least one test case type.",
+      statusCode: 400,
+    };
+  }
+
+  return {
+    statusCode: 200,
+    data: {
+      context,
+      testTypes: normalizedTestTypes,
+    },
+  };
+}
