@@ -1,4 +1,10 @@
 import { useRef, useState } from "react";
+import TestSuiteImportModal from "../components/TestSuiteImportModal";
+
+import {
+  exportTestSuiteExcel,
+  mergeTestSuites,
+} from "../utils/testSuiteExcel";
 
 const testTypeOptions = [
   {
@@ -49,6 +55,8 @@ export default function TestCases() {
   const [testCases, setTestCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [importModalOpen, setImportModalOpen] =
+  useState(false);
 
   const workspaceRef = useRef(null);
 
@@ -207,82 +215,43 @@ export default function TestCases() {
     }
   };
 
-  const escapeCsv = (value) => {
-    const text = String(value ?? "").replace(/"/g, '""');
-    return `"${text}"`;
-  };
+  const handleMergeExistingSuite = (
+  existingCases
+) => {
+  const merged = mergeTestSuites(
+    existingCases,
+    testCases
+  );
 
-  const exportCsv = () => {
-    if (!testCases.length) return;
+  setTestCases(merged);
+  setImportModalOpen(false);
+  setError("");
 
-    const headers = [
-      "ID",
-      "Feature",
-      "Title",
-      "Description",
-      "Type",
-      "Severity",
-      "Priority",
-      "Status",
-      "Preconditions",
-      "Steps",
-      "Expected Result",
-    ];
-
-    const rows = testCases.map((testCase) => [
-      testCase.id,
-      testCase.feature,
-      testCase.title,
-      testCase.description,
-      testCase.type,
-      testCase.severity,
-      testCase.priority,
-      testCase.status,
-      (testCase.preconditions || []).join("\n"),
-      (testCase.steps || [])
-        .map(
-          (step, index) =>
-            `${index + 1}. ${step}`
-        )
-        .join("\n"),
-      testCase.expectedResult,
-    ]);
-
-    const csv = [
-      headers.map(escapeCsv).join(","),
-      ...rows.map((row) =>
-        row.map(escapeCsv).join(",")
-      ),
-    ].join("\r\n");
-
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;",
+  window.setTimeout(() => {
+    workspaceRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
     });
+  }, 100);
+};
+const exportExcel = () => {
+  if (!testCases.length) return;
 
-    const url = URL.createObjectURL(blob);
+  try {
+    exportTestSuiteExcel(testCases);
+  } catch (exportError) {
+    console.error(exportError);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "buglens-test-cases.csv";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  };
+    setError(
+      "Unable to export the Excel test suite."
+    );
+  }
+};
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
-    });
-  };
-
-  const scrollToWorkspace = () => {
-    workspaceRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
     });
   };
 
@@ -410,31 +379,20 @@ export default function TestCases() {
           validated before execution.
         </p>
 
-        <div className="flex gap-2">
+<div className="flex flex-wrap gap-2">
 
-          {testCases.length > 0 && (
-            <button
-              type="button"
-              onClick={scrollToWorkspace}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200"
-            >
-              View Test Cases ↓
-            </button>
-          )}
+<button
+  type="button"
+  onClick={handleGenerate}
+  disabled={!canGenerate}
+  className="min-h-11 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {loading ? "Generating..." : "Generate Test Cases"}
+</button>
+</div>
 
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading
-              ? "Generating..."
-              : "Generate Test Cases"}
-          </button>
 
-        </div>
-      </div>
+</div>
 
       {loading && (
         <div className="mt-6 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
@@ -469,31 +427,34 @@ export default function TestCases() {
                 Review, edit, execute and export your test cases.
               </p>
             </div>
-
-            <div className="flex gap-2">
-
-              <button
-                onClick={addTestCase}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium dark:border-slate-700 dark:text-white"
-              >
-                + Add Test Case
+            <div className="flex flex-wrap gap-2">
+            <button
+            type="button"
+            onClick={addTestCase}
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium dark:border-slate-700 dark:text-white"
+            >
+              + Add Test Case
               </button>
-
               <button
-                onClick={exportCsv}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
-              >
-                Export CSV
-              </button>
-
-            </div>
-          </div>
-
-          <p className="mb-4 text-xs text-slate-500">
-            {testCases.length} test cases
-          </p>
-
-          <div className="space-y-5">
+              type="button"
+               onClick={() => setImportModalOpen(true)}
+               className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
+                >
+                  Add to Existing Test Suite
+                  </button>
+                   <button
+                    type="button"
+                    onClick={exportExcel}
+                    className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
+                    >
+                       Export Excel
+                       </button>
+                       </div>
+                       </div>
+                       <p className="mb-4 text-xs text-slate-500">
+                         {testCases.length} test cases
+                         </p>
+                         <div className="space-y-5">
 
             {testCases.map((testCase) => (
 
@@ -725,6 +686,15 @@ export default function TestCases() {
           ↑
         </button>
       )}
+
+      <TestSuiteImportModal
+  open={importModalOpen}
+  currentCases={testCases}
+  onClose={() =>
+    setImportModalOpen(false)
+  }
+  onConfirm={handleMergeExistingSuite}
+/>
 
     </main>
   );
