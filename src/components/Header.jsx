@@ -10,7 +10,7 @@ export default function Header({ theme, onToggleTheme }) {
 
         <div className="space-y-1">
           <div className="inline-flex items-center rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-200">
-            SaaS-ready bug reporting
+          AI-Powered QA Assistant          
           </div>
           <div className="flex items-center gap-3">
             <img

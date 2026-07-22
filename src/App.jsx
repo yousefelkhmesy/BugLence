@@ -213,25 +213,7 @@ function aiInsightsTextLines(insights) {
   ].filter(Boolean);
 }
 
-function aiInsightsMarkdownLines(insights) {
-  if (!hasAiInsights(insights)) return [];
 
-  return [
-    "",
-    "## AI Insights",
-    insights.suggestedSeverity ? `- Suggested Severity: ${insights.suggestedSeverity}` : null,
-    insights.suggestedPriority ? `- Suggested Priority: ${insights.suggestedPriority}` : null,
-    `- Confidence: ${insights.confidence ?? 0}%`,
-    insights.reasoning ? `- Reasoning: ${insights.reasoning}` : null,
-    ...(insights.suggestedRootCause?.length ? ["", "### Suggested Root Causes", ...insights.suggestedRootCause.map((item) => `- ${item}`)] : []),
-    ...(insights.suggestedFix?.length ? ["", "### Suggested Fixes", ...insights.suggestedFix.map((item) => `- ${item}`)] : []),
-    ...(insights.regressionScope?.length ? ["", "### Regression Scope", ...insights.regressionScope.map((item) => `- ${item}`)] : []),
-  ].filter(Boolean);
-}
-
-function reportExportPayload(report, insights) {
-  return hasAiInsights(insights) ? { ...report, aiInsights: insights } : report;
-}
 function plainTextReport(report, insights) {
   return [
     "Title:",
@@ -260,45 +242,6 @@ function plainTextReport(report, insights) {
     ...aiInsightsTextLines(insights),
   ].join("\n").trim();
 }
-
-function markdownReport(report, insights) {
-  const analysis = reportAnalysisLines(report);
-
-  return [
-    `# ${report.title}`,
-    "",
-    "## Environment",
-    `- Platform: ${report.environment.platform}`,
-    `- Browser: ${report.environment.browser}`,
-    `- OS: ${report.environment.os}`,
-    "",
-    "## Preconditions",
-    ...report.preconditions.map((item) => `- ${item}`),
-    "",
-    "## Steps to Reproduce",
-    ...(report.steps.length ? report.steps.map((step, index) => `${index + 1}. ${step}`) : ["---"]),
-    "",
-    "## Expected Result",
-    report.expected,
-    "",
-    "## Actual Result",
-    report.actual,
-    "",
-    "## Triage",
-    `- Severity: ${report.severity}`,
-    `- Priority: ${report.priority}`,
-    ...(analysis.length ? ["", "## AI Analysis", ...analysis.slice(2)] : []),
-    ...aiInsightsMarkdownLines(insights),
-  ].join("\n").trim();
-}
-
-function jiraReport(report, insights) {
-  return markdownReport(report, insights)
-    .replace(/^# (.*)$/m, "h1. $1")
-    .replace(/^## (.*)$/gm, "h2. $1")
-    .replace(/^### (.*)$/gm, "h3. $1");
-}
-
 
 function normalizeGeneratedTestCases(data) {
   const normalizeList = (value) => {
@@ -563,22 +506,8 @@ export default function App() {
   };
 
   const handleCopy = () => copyText(plainTextReport(report, aiInsights), "Copied to clipboard.");
-  const handleCopyJira = () => copyText(jiraReport(report, aiInsights), "Copied Jira-ready report.");
-  const handleCopyAzure = () => copyText(markdownReport(report, aiInsights), "Copied Azure DevOps-ready report.");
 
-  const handleExportJson = () => {
-    if (!hasReport) return;
 
-    downloadFile("bug-report.json", JSON.stringify(reportExportPayload(report, aiInsights), null, 2), "application/json");
-    showToast("JSON export downloaded.");
-  };
-
-  const handleExportMarkdown = () => {
-    if (!hasReport) return;
-
-    downloadFile("bug-report.md", markdownReport(report, aiInsights), "text/markdown");
-    showToast("Markdown export downloaded.");
-  };
   const handleGenerateTestCases = async () => {
     if (!hasReport || loading || testCasesLoading) {
       return;
@@ -798,15 +727,8 @@ export default function App() {
             <OutputCard
               report={report}
               onCopy={handleCopy}
-              onRegenerate={handleGenerate}
-              onExportJson={handleExportJson}
-              onExportMarkdown={handleExportMarkdown}
-              onCopyJira={handleCopyJira}
-              onCopyAzure={handleCopyAzure}
               copied={copied}
               canCopy={hasReport && !loading}
-              canRegenerate={hasReport && !loading}
-              onGenerateTestCases={handleGenerateTestCases}
               canGenerateTestCases={hasReport && !loading && !testCasesLoading}
               testCasesLoading={testCasesLoading}
               loading={loading}

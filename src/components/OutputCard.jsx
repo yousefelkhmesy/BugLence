@@ -114,8 +114,8 @@ function EmptyState() {
           No report generated yet
         </h3>
         <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Add a clear issue description and generate a structured report ready for Jira or Azure DevOps.
-        </p>
+          Add a clear issue description and generate a structured QA bug report.        
+          </p>
       </div>
     </div>
   );
@@ -212,19 +212,14 @@ function AnalysisAccordion({ report, open, onToggle }) {
 export default function OutputCard({
   report,
   onCopy,
-  onRegenerate,
-  onExportJson,
-  onExportMarkdown,
-  onCopyJira,
-  onCopyAzure,
   onGenerateTestCases,
   copied,
   canCopy,
-  canRegenerate,
   canGenerateTestCases,
   loading,
   testCasesLoading,
   progressMessage,
+
 }) {
   const [openSections, setOpenSections] = useState({
     preconditions: true,
@@ -390,29 +385,9 @@ export default function OutputCard({
             <Icon name="copy" />
             {copied ? "Copied" : "Copy"}
           </ActionButton>
-          <ActionButton onClick={onCopyJira} disabled={!canCopy} className="w-full">
-            <Icon name="copy" />
-            Copy for Jira
-          </ActionButton>
-          <ActionButton onClick={onCopyAzure} disabled={!canCopy} className="w-full">
-            <Icon name="copy" />
-            Copy for Azure DevOps
-          </ActionButton>
-          <ActionButton onClick={onExportJson} disabled={!canCopy} className="w-full">
-            <Icon name="export" />
-            Export JSON
-          </ActionButton>
-          <ActionButton onClick={onExportMarkdown} disabled={!canCopy} className="w-full">
-            <Icon name="export" />
-            Export Markdown
-          </ActionButton>
           <ActionButton onClick={onGenerateTestCases} disabled={!canGenerateTestCases} variant="primary" className="w-full">
             {testCasesLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Icon name="testCases" />}
             {testCasesLoading ? "Generating Cases..." : "Generate Test Cases"}
-          </ActionButton>
-          <ActionButton onClick={onRegenerate} disabled={!canRegenerate} variant="primary" className="w-full">
-            {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Icon name="refresh" />}
-            {loading ? "Generating..." : "Regenerate"}
           </ActionButton>
         </div>
       </footer>
