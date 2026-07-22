@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const testTypeOptions = [
   {
@@ -24,9 +24,13 @@ const testTypeOptions = [
 ];
 
 const emptyTestCase = {
+  feature: "",
   title: "",
+  description: "",
   type: "Positive",
+  severity: "Medium",
   priority: "Medium",
+  status: "",
   preconditions: [],
   steps: [],
   expectedResult: "",
@@ -46,6 +50,8 @@ export default function TestCases() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const workspaceRef = useRef(null);
+
   const toggleTestType = (type) => {
     setTestTypes((prev) => ({
       ...prev,
@@ -53,7 +59,8 @@ export default function TestCases() {
     }));
   };
 
-  const hasSelectedType = Object.values(testTypes).some(Boolean);
+  const hasSelectedType =
+    Object.values(testTypes).some(Boolean);
 
   const canGenerate =
     context.trim().length >= 10 &&
@@ -89,14 +96,20 @@ export default function TestCases() {
         );
       }
 
-      setTestCases(
-        Array.isArray(data?.testCases) ? data.testCases : []
-      );
+      const generated = Array.isArray(data?.testCases)
+        ? data.testCases
+        : [];
+
+      setTestCases(generated);
+
+      window.setTimeout(() => {
+        workspaceRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
     } catch (requestError) {
-      console.error(
-        "Test case generation error:",
-        requestError
-      );
+      console.error(requestError);
 
       setError(
         requestError.message ||
@@ -111,10 +124,7 @@ export default function TestCases() {
     setTestCases((prev) =>
       prev.map((testCase) =>
         testCase.id === id
-          ? {
-              ...testCase,
-              [field]: value,
-            }
+          ? { ...testCase, [field]: value }
           : testCase
       )
     );
@@ -128,13 +138,24 @@ export default function TestCases() {
 
   const addTestCase = () => {
     setTestCases((prev) => {
-      const nextNumber = prev.length + 1;
+      const highestId = prev.reduce((max, testCase) => {
+        const number = Number(
+          String(testCase.id || "").replace("TC-", "")
+        );
+
+        return Number.isFinite(number)
+          ? Math.max(max, number)
+          : max;
+      }, 0);
 
       return [
         ...prev,
         {
           ...emptyTestCase,
-          id: `TC-${String(nextNumber).padStart(3, "0")}`,
+          id: `TC-${String(highestId + 1).padStart(
+            3,
+            "0"
+          )}`,
           preconditions: [],
           steps: [],
         },
@@ -143,35 +164,40 @@ export default function TestCases() {
   };
 
   const handleListChange = (id, field, value) => {
-    const items = value
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    updateTestCase(id, field, items);
+    updateTestCase(
+      id,
+      field,
+      value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    );
   };
 
   const copyTestCase = async (testCase) => {
     const text = [
-      `${testCase.id} - ${testCase.title}`,
-      `Type: ${testCase.type}`,
-      `Priority: ${testCase.priority}`,
+      `ID: ${testCase.id}`,
+      `Feature: ${testCase.feature || ""}`,
+      `Title: ${testCase.title || ""}`,
+      `Description: ${testCase.description || ""}`,
+      `Type: ${testCase.type || ""}`,
+      `Severity: ${testCase.severity || ""}`,
+      `Priority: ${testCase.priority || ""}`,
+      `Status: ${testCase.status || ""}`,
       "",
       "Preconditions:",
-      ...(testCase.preconditions?.length
-        ? testCase.preconditions.map(
-            (item) => `- ${item}`
-          )
-        : ["- None"]),
+      ...(testCase.preconditions || []).map(
+        (item) => `- ${item}`
+      ),
       "",
       "Steps:",
-      ...(testCase.steps?.length
-        ? testCase.steps.map(
-            (step, index) => `${index + 1}. ${step}`
-          )
-        : ["None"]),
+      ...(testCase.steps || []).map(
+        (step, index) => `${index + 1}. ${step}`
+      ),
       "",
-      `Expected Result: ${testCase.expectedResult}`,
+      `Expected Result: ${
+        testCase.expectedResult || ""
+      }`,
     ].join("\n");
 
     try {
@@ -191,9 +217,13 @@ export default function TestCases() {
 
     const headers = [
       "ID",
+      "Feature",
       "Title",
+      "Description",
       "Type",
+      "Severity",
       "Priority",
+      "Status",
       "Preconditions",
       "Steps",
       "Expected Result",
@@ -201,12 +231,19 @@ export default function TestCases() {
 
     const rows = testCases.map((testCase) => [
       testCase.id,
+      testCase.feature,
       testCase.title,
+      testCase.description,
       testCase.type,
+      testCase.severity,
       testCase.priority,
+      testCase.status,
       (testCase.preconditions || []).join("\n"),
       (testCase.steps || [])
-        .map((step, index) => `${index + 1}. ${step}`)
+        .map(
+          (step, index) =>
+            `${index + 1}. ${step}`
+        )
         .join("\n"),
       testCase.expectedResult,
     ]);
@@ -235,8 +272,23 @@ export default function TestCases() {
     URL.revokeObjectURL(url);
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollToWorkspace = () => {
+    workspaceRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
       <header className="mb-7">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
           Test Case Generator
@@ -244,25 +296,24 @@ export default function TestCases() {
 
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
           Generate structured, executable test cases from
-          requirements, user stories, acceptance criteria, or
-          feature descriptions.
+          requirements, user stories, acceptance criteria,
+          or feature descriptions.
         </p>
       </header>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-        <div className="mb-3">
-          <label
-            htmlFor="test-context"
-            className="text-sm font-semibold text-slate-900 dark:text-white"
-          >
-            Test Context
-          </label>
 
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Provide the feature or requirement you want to
-            design test cases for.
-          </p>
-        </div>
+        <label
+          htmlFor="test-context"
+          className="text-sm font-semibold text-slate-900 dark:text-white"
+        >
+          Test Context
+        </label>
+
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Provide the feature or requirement you want to
+          design test cases for.
+        </p>
 
         <textarea
           id="test-context"
@@ -276,10 +327,10 @@ export default function TestCases() {
             if (error) setError("");
           }}
           placeholder="Paste a requirement, user story, acceptance criteria, or feature description..."
-          className="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+          className="mt-3 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
         />
 
-        <div className="mt-2 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-2 flex justify-between text-xs text-slate-500">
           <span>
             More context helps BugLens generate better coverage.
           </span>
@@ -289,18 +340,16 @@ export default function TestCases() {
       </section>
 
       <section className="mt-6">
-        <div className="mb-3">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-            Test Case Types
-          </h2>
 
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Choose the test coverage you want BugLens to
-            generate.
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+          Test Case Types
+        </h2>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Choose the test coverage you want BugLens to generate.
+        </p>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {testTypeOptions.map((type) => {
             const selected = testTypes[type.key];
 
@@ -310,10 +359,11 @@ export default function TestCases() {
                 className={`min-h-[110px] cursor-pointer rounded-xl border p-4 transition ${
                   selected
                     ? "border-indigo-300 bg-indigo-50/70 ring-1 ring-indigo-200 dark:border-indigo-500/50 dark:bg-indigo-500/10"
-                    : "border-slate-200 bg-white hover:border-indigo-200 dark:border-slate-700 dark:bg-slate-900"
+                    : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
                 }`}
               >
                 <div className="flex items-start gap-3">
+
                   <input
                     type="checkbox"
                     checked={selected}
@@ -333,6 +383,7 @@ export default function TestCases() {
                       {type.description}
                     </p>
                   </div>
+
                 </div>
               </label>
             );
@@ -341,273 +392,418 @@ export default function TestCases() {
       </section>
 
       {!hasSelectedType && (
-        <p className="mt-4 text-sm text-amber-700 dark:text-amber-300">
+        <p className="mt-4 text-sm text-amber-700">
           Select at least one test case type.
         </p>
       )}
 
       {error && (
-        <div
-          role="alert"
-          className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
-        >
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+
+        <p className="text-xs text-slate-500">
           AI-generated test cases should be reviewed and
           validated before execution.
         </p>
 
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={!canGenerate}
-          className="min-h-11 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading
-            ? "Generating..."
-            : "Generate Test Cases"}
-        </button>
+        <div className="flex gap-2">
+
+          {testCases.length > 0 && (
+            <button
+              type="button"
+              onClick={scrollToWorkspace}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 dark:border-slate-700 dark:text-slate-200"
+            >
+              View Test Cases ↓
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={!canGenerate}
+            className="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading
+              ? "Generating..."
+              : "Generate Test Cases"}
+          </button>
+
+        </div>
       </div>
 
       {loading && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="mt-6 overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/70 dark:border-indigo-500/20 dark:bg-indigo-500/10"
-        >
-          <div className="flex items-center gap-3 px-4 py-3">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+        <div className="mt-6 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+          <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+            Designing test coverage...
+          </p>
 
-            <div>
-              <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
-                Designing test coverage...
-              </p>
+          <p className="mt-1 text-xs text-indigo-700 dark:text-indigo-300">
+            BugLens is analyzing the requirement and preparing executable test cases.
+          </p>
 
-              <p className="mt-0.5 text-xs text-indigo-700/70 dark:text-indigo-300/70">
-                Generating structured and executable test cases.
-              </p>
-            </div>
-          </div>
-
-          <div className="h-1 bg-indigo-100 dark:bg-indigo-950">
+          <div className="mt-3 h-1 overflow-hidden rounded bg-indigo-100">
             <div className="h-full w-1/3 animate-pulse bg-indigo-600" />
           </div>
         </div>
       )}
 
       {testCases.length > 0 && (
-        <section className="mt-10">
-          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <section
+          ref={workspaceRef}
+          className="mt-10 scroll-mt-24"
+        >
+
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+
             <div>
               <h2 className="text-xl font-semibold text-slate-950 dark:text-white">
                 Test Case Workspace
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Review and edit AI-generated suggestions before
-                using or exporting them.
+              <p className="mt-1 text-sm text-slate-500">
+                Review, edit, execute and export your test cases.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
+
               <button
-                type="button"
                 onClick={addTestCase}
-                className="min-h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium dark:border-slate-700 dark:text-white"
               >
                 + Add Test Case
               </button>
 
               <button
-                type="button"
                 onClick={exportCsv}
-                className="min-h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
               >
                 Export CSV
               </button>
+
             </div>
           </div>
 
-          <div className="mb-4 text-xs text-slate-500 dark:text-slate-400">
-            {testCases.length} test case
-            {testCases.length !== 1 ? "s" : ""}
-          </div>
+          <p className="mb-4 text-xs text-slate-500">
+            {testCases.length} test cases
+          </p>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
+
             {testCases.map((testCase) => (
+
               <article
                 key={testCase.id}
                 className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
               >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                  <div className="flex-1">
-                    <div className="mb-3 flex items-center gap-2">
-                      <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                        {testCase.id}
-                      </span>
 
-                      <span className="text-xs text-slate-400">
-                        AI suggestion
-                      </span>
-                    </div>
+                <div className="flex justify-between gap-4">
 
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Title
-                    </label>
+                  <span className="text-xs font-semibold text-indigo-600">
+                    {testCase.id}
+                  </span>
 
-                    <input
-                      value={testCase.title}
-                      onChange={(event) =>
-                        updateTestCase(
-                          testCase.id,
-                          "title",
-                          event.target.value
-                        )
-                      }
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    />
-                  </div>
+                  <div className="flex gap-2">
 
-                  <div className="flex flex-wrap gap-2">
                     <button
-                      type="button"
                       onClick={() =>
                         copyTestCase(testCase)
                       }
-                      className="min-h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:text-white"
                     >
                       Copy
                     </button>
 
                     <button
-                      type="button"
                       onClick={() =>
                         deleteTestCase(testCase.id)
                       }
-                      className="min-h-10 rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400"
+                      className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600"
                     >
                       Delete
                     </button>
+
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Type
-                    </label>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
 
-                    <select
-                      value={testCase.type}
-                      onChange={(event) =>
-                        updateTestCase(
-                          testCase.id,
-                          "type",
-                          event.target.value
-                        )
-                      }
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    >
-                      <option>Positive</option>
-                      <option>Negative</option>
-                      <option>Edge Case</option>
-                      <option>Regression</option>
-                    </select>
-                  </div>
+                  <Field
+                    label="Feature"
+                    value={testCase.feature}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "feature",
+                        value
+                      )
+                    }
+                  />
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Priority
-                    </label>
+                  <Field
+                    label="Title"
+                    value={testCase.title}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "title",
+                        value
+                      )
+                    }
+                  />
 
-                    <select
-                      value={testCase.priority}
-                      onChange={(event) =>
-                        updateTestCase(
-                          testCase.id,
-                          "priority",
-                          event.target.value
-                        )
-                      }
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    >
-                      <option>Low</option>
-                      <option>Medium</option>
-                      <option>High</option>
-                      <option>Critical</option>
-                    </select>
-                  </div>
                 </div>
 
-                <div className="mt-5">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Preconditions
-                  </label>
+                <div className="mt-4">
 
-                  <textarea
-                    rows={3}
+                  <TextArea
+                    label="Description"
+                    value={testCase.description}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "description",
+                        value
+                      )
+                    }
+                  />
+
+                </div>
+
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+                  <SelectField
+                    label="Type"
+                    value={testCase.type}
+                    options={[
+                      "Positive",
+                      "Negative",
+                      "Edge Case",
+                      "Regression",
+                    ]}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "type",
+                        value
+                      )
+                    }
+                  />
+
+                  <SelectField
+                    label="Severity"
+                    value={testCase.severity}
+                    options={[
+                      "Low",
+                      "Medium",
+                      "High",
+                      "Critical",
+                    ]}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "severity",
+                        value
+                      )
+                    }
+                  />
+
+                  <SelectField
+                    label="Priority"
+                    value={testCase.priority}
+                    options={[
+                      "Low",
+                      "Medium",
+                      "High",
+                      "Critical",
+                    ]}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "priority",
+                        value
+                      )
+                    }
+                  />
+
+                  <SelectField
+                    label="Status"
+                    value={testCase.status || ""}
+                    options={[
+                      "",
+                      "Not Run",
+                      "Passed",
+                      "Failed",
+                      "Blocked",
+                    ]}
+                    onChange={(value) =>
+                      updateTestCase(
+                        testCase.id,
+                        "status",
+                        value
+                      )
+                    }
+                  />
+
+                </div>
+
+                <div className="mt-4">
+
+                  <TextArea
+                    label="Preconditions"
                     value={(testCase.preconditions || []).join(
                       "\n"
                     )}
-                    onChange={(event) =>
+                    onChange={(value) =>
                       handleListChange(
                         testCase.id,
                         "preconditions",
-                        event.target.value
+                        value
                       )
                     }
-                    placeholder="One precondition per line"
-                    className="mt-1 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    rows={3}
                   />
+
                 </div>
 
-                <div className="mt-5">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Test Steps
-                  </label>
+                <div className="mt-4">
 
-                  <textarea
-                    rows={5}
+                  <TextArea
+                    label="Test Steps"
                     value={(testCase.steps || []).join("\n")}
-                    onChange={(event) =>
+                    onChange={(value) =>
                       handleListChange(
                         testCase.id,
                         "steps",
-                        event.target.value
+                        value
                       )
                     }
-                    placeholder="One test step per line"
-                    className="mt-1 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    rows={5}
                   />
+
                 </div>
 
-                <div className="mt-5">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Expected Result
-                  </label>
+                <div className="mt-4">
 
-                  <textarea
-                    rows={3}
+                  <TextArea
+                    label="Expected Result"
                     value={testCase.expectedResult}
-                    onChange={(event) =>
+                    onChange={(value) =>
                       updateTestCase(
                         testCase.id,
                         "expectedResult",
-                        event.target.value
+                        value
                       )
                     }
-                    className="mt-1 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    rows={3}
                   />
+
                 </div>
+
               </article>
+
             ))}
+
           </div>
+
         </section>
       )}
+
+      {testCases.length > 0 && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Back to top"
+          title="Back to top"
+          className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-indigo-600 text-lg font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-700"
+        >
+          ↑
+        </button>
+      )}
+
     </main>
+  );
+}
+
+function Field({
+  label,
+  value = "",
+  onChange,
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-slate-500">
+        {label}
+      </label>
+
+      <input
+        value={value || ""}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+      />
+    </div>
+  );
+}
+
+function TextArea({
+  label,
+  value = "",
+  onChange,
+  rows = 3,
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-slate-500">
+        {label}
+      </label>
+
+      <textarea
+        rows={rows}
+        value={value || ""}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="mt-1 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value = "",
+  options,
+  onChange,
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-slate-500">
+        {label}
+      </label>
+
+      <select
+        value={value || ""}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+      >
+        {options.map((option) => (
+          <option
+            key={option || "empty"}
+            value={option}
+          >
+            {option || "Select status"}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
