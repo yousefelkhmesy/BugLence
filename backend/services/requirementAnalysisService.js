@@ -6,7 +6,7 @@ const client = new Groq({
 
 function cleanAiJson(content) {
   return String(content || "")
-    .replace(/```json/g, "")
+    .replace(/```json/gi, "")
     .replace(/```/g, "")
     .trim();
 }
@@ -14,17 +14,18 @@ function cleanAiJson(content) {
 function parseAiJson(content) {
   const cleaned = cleanAiJson(content);
 
+  if (!cleaned) {
+    throw new Error("AI returned an empty requirement analysis response");
+  }
+
   try {
     return JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
+  } catch (error) {
+    console.error("Invalid requirement analysis JSON:", cleaned);
 
-    if (start === -1 || end === -1 || end <= start) {
-      throw new Error("Requirement analysis response was not valid JSON");
-    }
-
-    return JSON.parse(cleaned.slice(start, end + 1));
+    throw new Error(
+      `Requirement analysis response was not valid JSON: ${error.message}`
+    );
   }
 }
 
@@ -66,23 +67,23 @@ function normalizeRequirementAnalysis(data, analysisOptions) {
 function selectedAnalysisNames(analysisOptions) {
   const names = [];
 
-  if (analysisOptions.ambiguities) {
+  if (analysisOptions?.ambiguities) {
     names.push("Ambiguities");
   }
 
-  if (analysisOptions.missingInfo) {
+  if (analysisOptions?.missingInfo) {
     names.push("Missing Information");
   }
 
-  if (analysisOptions.risks) {
+  if (analysisOptions?.risks) {
     names.push("Risks");
   }
 
-  if (analysisOptions.testScenarios) {
+  if (analysisOptions?.testScenarios) {
     names.push("Suggested Test Scenarios");
   }
 
-  if (analysisOptions.edgeCases) {
+  if (analysisOptions?.edgeCases) {
     names.push("Edge Cases");
   }
 
@@ -96,47 +97,51 @@ export async function buildRequirementAnalysis(input) {
     const prompt = `
 You are a Senior QA Engineer analyzing a software requirement before testing begins.
 
-Your task is to review the provided requirement from a QA perspective and generate only the analysis requested by the user.
+Analyze the provided requirement from a QA perspective.
 
-Design principle:
 AI recommendations are suggestions only.
 The QA Engineer is responsible for final validation.
-Use the principle: AI Recommendation + Human Validation.
 
-Generate only these selected analysis areas:
+Selected analysis areas:
 ${selectedAnalysisNames(analysisOptions)}
 
-Definitions:
+DEFINITIONS:
 
 Ambiguities:
 Identify unclear, vague, contradictory, or open-to-interpretation statements.
 
 Missing Information:
-Identify information that may be required to correctly implement or test the requirement but is not specified.
+Identify important information required to correctly implement or test the requirement that is not specified.
 
 Risks:
-Identify realistic product, functional, integration, data, security, usability, or implementation risks relevant to testing.
+Identify realistic functional, integration, data, security, usability, performance, or implementation risks relevant to QA.
 
 Suggested Test Scenarios:
-Suggest high-level QA test scenarios derived from the requirement.
-Do not generate unnecessarily detailed test steps.
+Suggest concise high-level QA scenarios derived from the requirement.
+Do not generate detailed execution steps.
 
 Edge Cases:
-Identify boundary conditions, unusual user behavior, exceptional states, and less obvious scenarios worth testing.
+Identify boundaries, exceptional states, unusual behavior, and less obvious scenarios worth testing.
 
-Rules:
-- Return valid JSON only.
-- Do not return markdown.
-- Do not invent confirmed product behavior that is not stated in the requirement.
-- Clearly treat uncertain conclusions as suggestions.
-- Be specific and actionable.
+OUTPUT RULES:
+
+- Return exactly one valid JSON object.
+- Return JSON only.
+- Do not use markdown.
+- Do not use code fences.
+- Do not include comments.
+- Do not include text before or after the JSON.
+- Analyze only the selected areas.
+- Return [] for every unselected area.
+- Return [] when no meaningful finding exists.
 - Avoid duplicate findings.
-- Use professional QA terminology.
-- Analyze only the options selected by the user.
-- For unselected analysis areas, return [].
-- If no meaningful finding exists for a selected area, return [].
+- Keep each finding concise and actionable.
+- Do not invent unsupported product behavior.
+- Generate a maximum of 8 findings per selected area.
+- Prefer meaningful QA findings over quantity.
 
-JSON format:
+Required JSON structure:
+
 {
   "ambiguities": [],
   "missingInfo": [],
@@ -146,27 +151,58 @@ JSON format:
 }
 
 Requirement:
+
 ${requirement}
 `;
 
     const completion = await client.chat.completions.create({
       model: "openai/gpt-oss-20b",
+
       messages: [
+        {
+          role: "system",
+          content:
+            "You are a Senior QA Engineer. Return valid JSON only and follow the requested JSON structure exactly.",
+        },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.2,
-      max_completion_tokens: 1800,
+
+      temperature: 0.1,
+
+      max_completion_tokens: 5000,
+
+      response_format: {
+        type: "json_object",
+      },
     });
 
-    const content = completion.choices[0].message.content;
+    const choice = completion.choices?.[0];
+    const content = choice?.message?.content;
+
+    if (!content) {
+      throw new Error("AI returned an empty requirement analysis response");
+    }
+
+    if (choice?.finish_reason === "length") {
+      throw new Error(
+        "Requirement analysis exceeded the maximum output length"
+      );
+    }
+
     const parsed = parseAiJson(content);
 
-    return normalizeRequirementAnalysis(parsed, analysisOptions);
+    return normalizeRequirementAnalysis(
+      parsed,
+      analysisOptions
+    );
   } catch (error) {
-    console.error(error);
+    console.error(
+      "Requirement analysis generation failed:",
+      error
+    );
 
     const serviceError = new Error(
       "Requirement analysis generation failed"
