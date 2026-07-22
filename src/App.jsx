@@ -6,6 +6,7 @@ import Navigation from "./components/Navigation";
 import Header from "./components/Header";
 import { useTheme } from "./hooks/useTheme";
 import TestCases from "./pages/TestCases";
+import TestData from "./pages/TestData";
 
 export default function App() {
   const [activePage, setActivePage] = useState("requirements");
@@ -22,6 +23,7 @@ export default function App() {
       {activePage === "requirements" && <RequirementAnalyzer />}
       {activePage === "bugs" && <BugAnalyzer />}
       {activePage === "test-cases" && <TestCases />}
+      {activePage === "test-data" && <TestData />}
       {activePage === "about" && <About />}
     </>
   );

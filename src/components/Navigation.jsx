@@ -30,6 +30,7 @@ export default function Navigation({ activePage, onPageChange }) {
       {navItem("requirements", "Requirement Analyzer")}
       {navItem("bugs", "Bug Analyzer")}
       {navItem("test-cases", "Test Cases")}
+      {navItem("test-data", "Test Data")}
       {navItem("about", "About")}
     </nav>
   );
