@@ -6,7 +6,7 @@ const client = new Groq({
 
 function cleanAiJson(content) {
   return String(content || "")
-    .replace(/```json/g, "")
+    .replace(/```json/gi, "")
     .replace(/```/g, "")
     .trim();
 }
@@ -14,17 +14,15 @@ function cleanAiJson(content) {
 function parseAiJson(content) {
   const cleaned = cleanAiJson(content);
 
+  if (!cleaned) {
+    throw new Error("AI returned an empty response");
+  }
+
   try {
     return JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-
-    if (start === -1 || end === -1 || end <= start) {
-      throw new Error("AI response was not valid JSON");
-    }
-
-    return JSON.parse(cleaned.slice(start, end + 1));
+  } catch (error) {
+    console.error("Invalid AI JSON:", cleaned);
+    throw new Error(`AI returned invalid JSON: ${error.message}`);
   }
 }
 
@@ -67,7 +65,9 @@ function normalizeTestCase(testCase, index) {
     priority: normalizePriority(testCase?.priority),
     preconditions: normalizeList(testCase?.preconditions),
     steps: normalizeList(testCase?.steps),
-    expectedResult: normalizeString(testCase?.expectedResult),
+    expectedResult:
+      normalizeString(testCase?.expectedResult) ||
+      "Expected behavior should be validated.",
   };
 }
 
@@ -84,10 +84,10 @@ function normalizeResponse(data) {
 function selectedTypes(testTypes) {
   const types = [];
 
-  if (testTypes.positive) types.push("Positive");
-  if (testTypes.negative) types.push("Negative");
-  if (testTypes.edge) types.push("Edge Case");
-  if (testTypes.regression) types.push("Regression");
+  if (testTypes?.positive) types.push("Positive");
+  if (testTypes?.negative) types.push("Negative");
+  if (testTypes?.edge) types.push("Edge Case");
+  if (testTypes?.regression) types.push("Regression");
 
   return types;
 }
@@ -97,100 +97,141 @@ export async function generateRequirementTestCases(input) {
 
   const types = selectedTypes(testTypes);
 
+  if (!types.length) {
+    const error = new Error("At least one test case type must be selected");
+    error.statusCode = 400;
+    throw error;
+  }
+
   try {
     const prompt = `
-You are a Senior QA Engineer specializing in professional test design.
+You are a Senior QA Engineer specializing in professional manual test design.
 
-Generate executable manual test cases based strictly on the provided requirement, user story, acceptance criteria, or feature description.
+Generate executable test cases based strictly on the provided test context.
 
 Selected test case types:
 ${types.join(", ")}
 
-Design principle:
-AI generates test suggestions.
-A QA Engineer reviews, edits, validates, and approves them before execution.
+IMPORTANT OUTPUT RULES:
 
-Requirements:
+- Return valid JSON only.
+- Return exactly one JSON object.
+- Do not use markdown.
+- Do not use code fences.
+- Do not include comments.
+- Do not include text before or after the JSON.
+- Keep the response concise.
+- Generate a maximum of 12 test cases total.
+- Prefer quality and coverage over quantity.
+- Use no more than 6 execution steps per test case.
+- Keep each step concise.
+- Keep preconditions concise.
 
-- Generate only the selected test case types.
-- Generate useful, non-duplicate test cases.
-- Prioritize meaningful test coverage over generating a large number of cases.
-- Keep each test case independently executable where practical.
-- Use clear professional QA terminology.
-- Do not invent unsupported product behavior as confirmed fact.
-- If assumptions are necessary, keep them reasonable and visible through the test case context.
+TEST DESIGN RULES:
+
+- Generate only selected test case types.
+- Avoid duplicate scenarios.
+- Test cases must be independently executable where practical.
 - Steps must be specific and executable.
 - Expected results must be observable and testable.
-- Avoid vague expected results such as "works correctly".
-- Do not duplicate the same scenario across multiple test types.
-- Include boundary and unusual behavior under Edge Case when selected.
-- Regression cases should focus on existing functionality that could reasonably be affected.
-- Priority must represent testing importance and potential product impact.
+- Never use vague expected results such as "works correctly".
+- Do not present unsupported assumptions as confirmed requirements.
+- Edge Case tests should focus on boundaries and unusual conditions.
+- Regression tests should cover existing functionality reasonably affected by the feature.
+- Priority should represent testing importance and product impact.
 
-Allowed test case types:
-- Positive
-- Negative
-- Edge Case
-- Regression
+Allowed types:
+"Positive"
+"Negative"
+"Edge Case"
+"Regression"
 
-Allowed priority values:
-- Low
-- Medium
-- High
-- Critical
+Allowed priorities:
+"Low"
+"Medium"
+"High"
+"Critical"
 
-Return valid JSON only.
-Do not return markdown.
-Do not include explanations outside the JSON.
-
-Return this exact structure:
+Required JSON structure:
 
 {
   "testCases": [
     {
-      "title": "Verify...",
+      "title": "Verify user can perform the expected action",
       "type": "Positive",
       "priority": "High",
       "preconditions": [
-        "..."
+        "User is registered"
       ],
       "steps": [
-        "...",
-        "..."
+        "Open the relevant page",
+        "Perform the required action"
       ],
-      "expectedResult": "..."
+      "expectedResult": "The expected observable result occurs."
     }
   ]
 }
 
 Test Context:
-
 ${context}
 `;
 
     const completion = await client.chat.completions.create({
       model: "openai/gpt-oss-20b",
+
       messages: [
+        {
+          role: "system",
+          content:
+            "You are a Senior QA Engineer. Return valid JSON only and follow the requested schema exactly.",
+        },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.2,
-      max_completion_tokens: 3500,
+
+      temperature: 0.1,
+
+      max_completion_tokens: 6000,
+
+      response_format: {
+        type: "json_object",
+      },
     });
 
-    const content = completion.choices?.[0]?.message?.content;
+    const choice = completion.choices?.[0];
+
+    const content = choice?.message?.content;
 
     if (!content) {
       throw new Error("AI returned an empty response");
     }
 
+    if (choice?.finish_reason === "length") {
+      throw new Error(
+        "AI response exceeded the maximum output length"
+      );
+    }
+
     const parsed = parseAiJson(content);
 
-    return normalizeResponse(parsed);
+    const normalized = normalizeResponse(parsed);
+
+    if (!normalized.testCases.length) {
+      throw new Error("AI returned no valid test cases");
+    }
+
+    return normalized;
   } catch (error) {
-    console.error("Requirement test case generation failed:", error);
+    console.error(
+      "Requirement test case generation failed:",
+      error
+    );
+
+    if (error.statusCode === 400) {
+      throw error;
+    }
 
     const serviceError = new Error(
       "Test case generation failed"
