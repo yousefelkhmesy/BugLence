@@ -69,10 +69,14 @@ export function validateBugRequest(payload) {
 
 export function validateTestCaseRequest(payload) {
   const title = normalizeString(payload?.title);
+
   const environment =
-    payload?.environment && typeof payload.environment === "object" && !Array.isArray(payload.environment)
+    payload?.environment &&
+    typeof payload.environment === "object" &&
+    !Array.isArray(payload.environment)
       ? payload.environment
       : {};
+
   const preconditions = normalizeStringArray(payload?.preconditions);
   const steps = normalizeStringArray(payload?.steps);
   const expected = normalizeString(payload?.expected);
@@ -115,11 +119,13 @@ export function validateTestCaseRequest(payload) {
     },
   };
 }
+
 export function validateAiInsightsRequest(payload) {
   const bugDescription = normalizeString(payload?.bugDescription);
   const platform = normalizeString(payload?.platform);
   const os = normalizeString(payload?.os);
   const browser = normalizeString(payload?.browser);
+
   const enabledInsights =
     payload?.enabledInsights &&
     typeof payload.enabledInsights === "object" &&
@@ -185,6 +191,61 @@ export function validateAiInsightsRequest(payload) {
       os,
       browser,
       enabledInsights: normalizedInsights,
+    },
+  };
+}
+
+export function validateRequirementAnalysisRequest(payload) {
+  const requirement = normalizeString(payload?.requirement);
+
+  const analysisOptions =
+    payload?.analysisOptions &&
+    typeof payload.analysisOptions === "object" &&
+    !Array.isArray(payload.analysisOptions)
+      ? payload.analysisOptions
+      : {};
+
+  const normalizedOptions = {
+    ambiguities: Boolean(analysisOptions.ambiguities),
+    missingInfo: Boolean(analysisOptions.missingInfo),
+    risks: Boolean(analysisOptions.risks),
+    testScenarios: Boolean(analysisOptions.testScenarios),
+    edgeCases: Boolean(analysisOptions.edgeCases),
+  };
+
+  if (!requirement) {
+    return {
+      error: "Requirement is required.",
+      statusCode: 400,
+    };
+  }
+
+  if (requirement.length < 10) {
+    return {
+      error: "Requirement must be at least 10 characters.",
+      statusCode: 400,
+    };
+  }
+
+  if (requirement.length > 4000) {
+    return {
+      error: "Requirement must not exceed 4000 characters.",
+      statusCode: 400,
+    };
+  }
+
+  if (!Object.values(normalizedOptions).some(Boolean)) {
+    return {
+      error: "At least one analysis option must be selected.",
+      statusCode: 400,
+    };
+  }
+
+  return {
+    statusCode: 200,
+    data: {
+      requirement,
+      analysisOptions: normalizedOptions,
     },
   };
 }
