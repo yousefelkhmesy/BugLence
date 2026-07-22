@@ -722,23 +722,20 @@ export default function App() {
               </div>
             </div>
           </section>
-
-          <div ref={resultRef} className="self-stretch">
-            <OutputCard
-              report={report}
-              onCopy={handleCopy}
-              copied={copied}
-              canCopy={hasReport && !loading}
-              canGenerateTestCases={hasReport && !loading && !testCasesLoading}
-              testCasesLoading={testCasesLoading}
-              loading={loading}
-              progressMessage={progressMessages[progressIndex]}
-            />
-            </div> 
+          <OutputCard
+          report={report}
+          onCopy={handleCopy}
+          onGenerateTestCases={handleGenerateTestCases}
+          copied={copied}
+          canCopy={hasReport && !loading}
+          canGenerateTestCases={hasReport && !loading && !testCasesLoading}
+          testCasesLoading={testCasesLoading}
+          loading={loading}
+          progressMessage={progressMessages[progressIndex]}
+          />
 
         </main>
-
-                    <div className="mt-4">
+        <div className="mt-4">
               <AiInsightsCard
                 insights={aiInsights}
                 enabledInsights={enabledInsights}
