@@ -95,9 +95,9 @@ export async function buildRequirementAnalysis(input) {
 
   try {
     const prompt = `
-You are a Senior QA Engineer analyzing a software requirement before testing begins.
-
-Analyze the provided requirement from a QA perspective.
+    
+    You are a Senior QA Engineer. Return valid JSON only and follow the requested JSON structure exactly.
+    Analyze the provided requirement from a QA perspective.
 
 AI recommendations are suggestions only.
 The QA Engineer is responsible for final validation.
@@ -132,22 +132,23 @@ OUTPUT RULES:
 - Do not include comments.
 - Do not include text before or after the JSON.
 - Analyze only the selected areas.
-- Return [] for every unselected area.
-- Return [] when no meaningful finding exists.
+- Return [] ONLY for unselected areas.
+- For EVERY selected area, provide between 3 and 8 meaningful findings.
+- A selected area MUST NOT be returned as an empty array.
+- Each finding must be a non-empty string.
 - Avoid duplicate findings.
 - Keep each finding concise and actionable.
 - Do not invent unsupported product behavior.
-- Generate a maximum of 8 findings per selected area.
 - Prefer meaningful QA findings over quantity.
 
 Required JSON structure:
 
 {
-  "ambiguities": [],
-  "missingInfo": [],
-  "risks": [],
-  "testScenarios": [],
-  "edgeCases": []
+  "ambiguities": ["finding"],
+  "missingInfo": ["finding"],
+  "risks": ["finding"],
+  "testScenarios": ["finding"],
+  "edgeCases": ["finding"]
 }
 
 Requirement:

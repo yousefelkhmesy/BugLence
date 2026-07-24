@@ -1,0 +1,795 @@
+{
+  "info": {
+    "_postman_id": "c9fcf629-1331-4750-a1c1-992e5840b1b3",
+    "name": "New Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55989310",
+    "_collection_link": "https://go.postman.co/collection/55989310-c9fcf629-1331-4750-a1c1-992e5840b1b3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "BugLense",
+      "item": [
+        {
+          "name": "Requirement Analyzer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"All analysis sections exist\", function () {\r",
+                  "    pm.expect(json).to.have.property(\"ambiguities\");\r",
+                  "    pm.expect(json).to.have.property(\"missingInfo\");\r",
+                  "    pm.expect(json).to.have.property(\"risks\");\r",
+                  "    pm.expect(json).to.have.property(\"testScenarios\");\r",
+                  "    pm.expect(json).to.have.property(\"edgeCases\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"All analysis sections are arrays\", function () {\r",
+                  "    pm.expect(json.ambiguities).to.be.an(\"array\");\r",
+                  "    pm.expect(json.missingInfo).to.be.an(\"array\");\r",
+                  "    pm.expect(json.risks).to.be.an(\"array\");\r",
+                  "    pm.expect(json.testScenarios).to.be.an(\"array\");\r",
+                  "    pm.expect(json.edgeCases).to.be.an(\"array\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"requirement\": \"As a registered user, I want to reset my password using my email address so that I can regain access to my account.\",\r\n  \"analysisOptions\": {\r\n    \"ambiguities\": true,\r\n    \"missingInfo\": true,\r\n    \"risks\": true,\r\n    \"testScenarios\": true,\r\n    \"edgeCases\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/analyze-requirement",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "analyze-requirement"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RA - Empty Requirement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Empty requirement returns 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error message exists\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.be.a(\"string\");\r",
+                  "    pm.expect(json.error.length).to.be.above(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"requirement\": \"\",\r\n  \"analysisOptions\": {\r\n    \"ambiguities\": true,\r\n    \"missingInfo\": true,\r\n    \"risks\": true,\r\n    \"testScenarios\": true,\r\n    \"edgeCases\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/analyze-requirement",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "analyze-requirement"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RA - Missing Requirement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Missing requirement returns 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error response contains message\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"analysisOptions\": {\r\n    \"ambiguities\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/analyze-requirement",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "analyze-requirement"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RA - No Options Selected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid platform returns 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Correct validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json.error)\r",
+                  "        .to.include(\"At least one analysis option\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"requirement\": \"User should be able to login.\",\r\n  \"analysisOptions\": {\r\n    \"ambiguities\": false,\r\n    \"missingInfo\": false,\r\n    \"risks\": false,\r\n    \"testScenarios\": false,\r\n    \"edgeCases\": false\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/analyze-requirement",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "analyze-requirement"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bug Report Generator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Bug report contains required fields\", function () {\r",
+                  "    pm.expect(json).to.have.property(\"title\");\r",
+                  "    pm.expect(json).to.have.property(\"steps\");\r",
+                  "    pm.expect(json).to.have.property(\"expected\");\r",
+                  "    pm.expect(json).to.have.property(\"actual\");\r",
+                  "    pm.expect(json).to.have.property(\"severity\");\r",
+                  "    pm.expect(json).to.have.property(\"priority\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Steps contain data\", function () {\r",
+                  "    pm.expect(json.steps).to.be.an(\"array\");\r",
+                  "    pm.expect(json.steps.length).to.be.above(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Severity is valid\", function () {\r",
+                  "    pm.expect([\"Low\", \"Medium\", \"High\", \"Critical\"])\r",
+                  "        .to.include(json.severity);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Priority is valid\", function () {\r",
+                  "    pm.expect([\"Low\", \"Medium\", \"High\", \"Critical\"])\r",
+                  "        .to.include(json.priority);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"description\": \"After completing checkout successfully, the shopping cart counter still displays the previous number of items. The counter resets only after manually refreshing the page.\",\r\n  \"platform\": \"Web\",\r\n  \"os\": \"Windows 11\",\r\n  \"browser\": \"Chrome\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-bug",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-bug"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bug - Empty Description",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Description validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.include(\"Description\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"description\": \"\",\r\n  \"platform\": \"Web\",\r\n  \"os\": \"Windows 11\",\r\n  \"browser\": \"Chrome\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-bug",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-bug"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bug - Missing Description",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Description validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.include(\"Description\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"platform\": \"Web\",\r\n  \"os\": \"Windows 11\",\r\n  \"browser\": \"Chrome\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-bug",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-bug"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bug - Invalid Platform",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Platform validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.include(\"Platform\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"description\": \"Cart counter does not reset after checkout.\",\r\n  \"platform\": \"PlayStation\",\r\n  \"os\": \"Windows 11\",\r\n  \"browser\": \"Chrome\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-bug",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-bug"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test Case Generator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Response contains testCases array\", function () {\r",
+                  "    pm.expect(json).to.have.property(\"testCases\");\r",
+                  "    pm.expect(json.testCases).to.be.an(\"array\");\r",
+                  "    pm.expect(json.testCases.length).to.be.above(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Every test case contains required fields\", function () {\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(tc).to.have.all.keys(\r",
+                  "            \"id\",\r",
+                  "            \"feature\",\r",
+                  "            \"title\",\r",
+                  "            \"description\",\r",
+                  "            \"type\",\r",
+                  "            \"severity\",\r",
+                  "            \"priority\",\r",
+                  "            \"status\",\r",
+                  "            \"preconditions\",\r",
+                  "            \"steps\",\r",
+                  "            \"expectedResult\"\r",
+                  "        );\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Every test case has valid ID\", function () {\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(tc.id).to.match(/^TC-\\d{3}$/);\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Every test case has preconditions and steps arrays\", function () {\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(tc.preconditions).to.be.an(\"array\");\r",
+                  "        pm.expect(tc.steps).to.be.an(\"array\");\r",
+                  "        pm.expect(tc.steps.length).to.be.above(0);\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Test case types are valid\", function () {\r",
+                  "    const validTypes = [\r",
+                  "        \"Positive\",\r",
+                  "        \"Negative\",\r",
+                  "        \"Edge Case\",\r",
+                  "        \"Regression\"\r",
+                  "    ];\r",
+                  "\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(validTypes).to.include(tc.type);\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Severity values are valid\", function () {\r",
+                  "    const validValues = [\"Low\", \"Medium\", \"High\", \"Critical\"];\r",
+                  "\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(validValues).to.include(tc.severity);\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Priority values are valid\", function () {\r",
+                  "    const validValues = [\"Low\", \"Medium\", \"High\", \"Critical\"];\r",
+                  "\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(validValues).to.include(tc.priority);\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Important text fields are not empty\", function () {\r",
+                  "    json.testCases.forEach(tc => {\r",
+                  "        pm.expect(tc.title.trim()).to.not.equal(\"\");\r",
+                  "        pm.expect(tc.description.trim()).to.not.equal(\"\");\r",
+                  "        pm.expect(tc.expectedResult.trim()).to.not.equal(\"\");\r",
+                  "    });\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Test case IDs are unique\", function () {\r",
+                  "    const ids = json.testCases.map(tc => tc.id);\r",
+                  "    const uniqueIds = new Set(ids);\r",
+                  "\r",
+                  "    pm.expect(uniqueIds.size).to.equal(ids.length);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"context\": \"Registered users can log in using their email and password. Email and password are required. Email must have a valid format. Password must contain at least 8 characters. Valid credentials redirect the user to the dashboard. Invalid credentials display an error message.\",\r\n  \"testTypes\": {\r\n    \"positive\": true,\r\n    \"negative\": true,\r\n    \"edge\": true,\r\n    \"regression\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-requirement-test-cases",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-requirement-test-cases"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC - Empty Requirement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Requirement validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.be.a(\"string\");\r",
+                  "    pm.expect(json.error.length).to.be.above(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"context\": \"\",\r\n  \"testTypes\": {\r\n    \"positive\": true,\r\n    \"negative\": true,\r\n    \"edge\": true,\r\n    \"regression\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-requirement-test-cases",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-requirement-test-cases"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC - Missing Requirement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Missing requirement error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.be.a(\"string\");\r",
+                  "    pm.expect(json.error.length).to.be.above(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"testTypes\": {\r\n    \"positive\": true,\r\n    \"negative\": true,\r\n    \"edge\": true,\r\n    \"regression\": true\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-requirement-test-cases",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-requirement-test-cases"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC - No Test Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Test type validation error is returned\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(json).to.have.property(\"error\");\r",
+                  "    pm.expect(json.error).to.be.a(\"string\");\r",
+                  "    pm.expect(json.error.length).to.be.above(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"positive\": false,\r\n  \"negative\": false,\r\n  \"edge\": false,\r\n  \"regression\": false\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://buglence.vercel.app/api/generate-requirement-test-cases",
+              "protocol": "https",
+              "host": [
+                "buglence",
+                "vercel",
+                "app"
+              ],
+              "path": [
+                "api",
+                "generate-requirement-test-cases"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
