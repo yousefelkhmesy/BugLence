@@ -155,29 +155,29 @@ Requirement:
 ${requirement}
 `;
 
-    const completion = await client.chat.completions.create({
-      model: "openai/gpt-oss-20b",
+   const completion = await client.chat.completions.create({
+  model: "openai/gpt-oss-20b",
 
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a Senior QA Engineer. Return valid JSON only and follow the requested JSON structure exactly.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+  messages: [
+    {
+      role: "system",
+      content:
+        "You are a Senior QA Engineer. Return valid JSON only and follow the requested JSON structure exactly.",
+    },
+    {
+      role: "user",
+      content: prompt,
+    },
+  ],
 
-      temperature: 0.1,
+  reasoning_effort: "low",
+  temperature: 0.1,
+  max_completion_tokens: 2000,
 
-      max_completion_tokens: 5000,
-
-      response_format: {
-        type: "json_object",
-      },
-    });
+  response_format: {
+    type: "json_object",
+  },
+});
 
     const choice = completion.choices?.[0];
     const content = choice?.message?.content;

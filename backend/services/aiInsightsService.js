@@ -139,17 +139,18 @@ OS: ${os}
 Browser: ${browser || "N/A"}
 `;
 
-    const completion = await client.chat.completions.create({
-      model: "openai/gpt-oss-20b",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.2,
-      max_completion_tokens: 1500,
-    });
+   const completion = await client.chat.completions.create({
+  model: "openai/gpt-oss-20b",
+  messages: [
+    {
+      role: "user",
+      content: prompt,
+    },
+  ],
+  reasoning_effort: "low",
+  temperature: 0.1,
+  max_completion_tokens: 1500,
+});
 
     const content = completion.choices[0].message.content;
     const parsed = parseAiJson(content);

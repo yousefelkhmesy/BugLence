@@ -47,26 +47,29 @@ OS: ${os}
 Stage: ${stage}
 `;
 
-    const completion = await client.chat.completions.create({
-      model: "openai/gpt-oss-20b",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.3,
-    });
+const completion = await client.chat.completions.create({
+  model: "openai/gpt-oss-20b",
+  messages: [
+    {
+      role: "user",
+      content: prompt,
+    },
+  ],
+  reasoning_effort: "low",
+  temperature: 0.1,
+  max_completion_tokens: 1500,
+});
 
-    const content = completion.choices[0].message.content;
+const content = completion.choices[0].message.content;
 
-    return JSON.parse(content);
-  } catch (error) {
-    console.error(error);
+return JSON.parse(content);
 
-    const serviceError = new Error("AI generation failed");
-    serviceError.statusCode = 500;
+} catch (error) {
+  console.error(error);
 
-    throw serviceError;
-  }
+  const serviceError = new Error("AI generation failed");
+  serviceError.statusCode = 500;
+
+  throw serviceError;
+}
 }

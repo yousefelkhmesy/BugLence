@@ -84,7 +84,8 @@ ${JSON.stringify(bugReport, null, 2)}
       content: prompt,
     },
   ],
-  temperature: 0.25,
+  reasoning_effort: "low",
+  temperature: 0.1,
   max_completion_tokens: 2000,
 });
 
