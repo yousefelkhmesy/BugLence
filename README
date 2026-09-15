@@ -1,199 +1,84 @@
 # BugLens
 
-[![QA Pipeline](BADGE_URL)](ACTIONS_URL)
-
 **Live Demo:** https://buglence.vercel.app/
 
-### AI-Powered QA Assistant for Requirement Analysis, Bug Reporting, and Test Design
+BugLens is an AI-powered QA assistant that helps QA Engineers analyze requirements, create bug reports, generate test cases, and get AI-assisted QA insights.
 
-BugLens is an AI-powered QA assistant designed to help QA Engineers analyze software requirements, transform raw issue descriptions into structured bug reports, generate professional test cases, and receive AI-assisted QA insights.
+The project follows a simple approach: **AI Recommendation + Human Validation**. AI provides suggestions and structured analysis, while the QA Engineer remains responsible for reviewing and validating the results.
 
-The project follows a simple principle: **AI Recommendation + Human Validation**. AI provides recommendations and structured analysis, while the QA Engineer remains responsible for validation and final decisions.
+## Features
 
-## Core Features
+* **Requirement Analysis** — Identify ambiguities, missing information, risks, edge cases, and possible test scenarios.
+* **Bug Report Generation** — Generate structured bug reports from raw issue descriptions.
+* **Test Case Generation** — Generate positive, negative, edge-case, and regression test cases.
+* **QA Insights** — Get AI-assisted suggestions for severity, priority, root causes, regression scope, and possible fixes.
+* **Export** — Copy generated results for use with Jira and Azure DevOps or export them as JSON.
 
-### Requirement Analyzer
+## Tech Stack
 
-BugLens analyzes software requirements from a QA perspective and helps identify **ambiguities, missing information, potential risks, suggested test scenarios, and edge cases** before testing begins.
+* React
+* Vite
+* Tailwind CSS
+* Node.js
+* Express.js
+* LLM Integration
+* Postman / Newman
+* Selenium WebDriver
+* Java / TestNG / Maven
+* GitHub Actions
 
-### Bug Report Generator
+## Testing
 
-Raw issue descriptions can be transformed into structured bug reports containing the **title, preconditions, steps to reproduce, expected result, actual result, severity, priority, and environment information**.
+The project includes API and UI test automation.
 
-### AI-Powered QA Insights
+### API Testing
 
-QA Engineers can optionally request AI recommendations for **severity, priority, possible root causes, suggested fixes, regression scope, confidence score, and reasoning summary**. These insights are recommendations intended to support investigation rather than replace QA judgement.
-
-### Test Case Generator
-
-BugLens generates structured **Positive, Negative, Edge Case, and Regression test cases**. Generated cases can include preconditions, execution steps, expected results, severity, and priority.
-
-### Export & Integration
-
-Generated QA artifacts can be copied for **Jira and Azure DevOps**, exported as JSON, or copied directly for use in existing QA workflows.
-
-# Architecture
-
-BugLens uses a modern web architecture consisting of **React, Vite, and Tailwind CSS** on the frontend and **Node.js with Express.js** on the backend.
-
-The AI layer uses LLM-powered generation services with structured JSON responses, validation, and normalization to produce predictable outputs that can be consumed by the application.
-
-text
-
-Frontend
-React + Vite + Tailwind CSS
-        │
-        ▼
-Backend
-Node.js + Express.js
-        │
-        ▼
-AI Services
-LLM Generation + JSON Validation
-
-
-# Quality Engineering
-
-BugLens is not only an AI application; the project also includes an end-to-end QA implementation covering **Manual Testing, API Testing, UI Automation, Regression Testing, and Continuous Integration**.
-
-The testing strategy validates the application at both API and UI levels while keeping automated regression coverage integrated into the development workflow.
-
-## API Testing
-
-API testing is implemented using **Postman and Newman**. The current regression collection contains **12 API requests** covering the Requirement Analyzer, Bug Report Generator, and Test Case Generator.
-
-The API suite covers happy paths, negative scenarios, missing required fields, invalid inputs, HTTP status codes, JSON responses, response structures, data types, and validation errors.
-
-### Run API Tests
-
-Install Newman and execute the collection:
+API tests are implemented using **Postman and Newman**.
 
 bash
-
 npm install -g newman
 newman run postman/BugLense.postman_collection.json
 
 
-# UI Test Automation
+### UI Automation
 
-UI regression automation is implemented using **Java 17, Selenium WebDriver, TestNG, Maven, and Page Object Model (POM)**.
-
-The current automation suite contains **23 Selenium regression tests** covering the three core BugLens workflows: Requirement Analyzer, Bug Report Generator, and Test Case Generator.
-
-The Page Object Model separates page interactions from test logic to keep the automation framework maintainable and scalable.
-
-### Run Selenium Regression
+UI tests are implemented using **Selenium WebDriver, Java, TestNG, Maven, and Page Object Model**.
 
 bash
-
 mvn -f automation/pom.xml test -DbaseUrl="https://buglence.vercel.app/"
 
 
-Test execution reports are generated inside:
+## Project Structure
 
 text
-
-automation/target/surefire-reports/
-
-
-# Continuous Integration
-
-BugLens uses **GitHub Actions** to automatically execute API and UI regression tests.
-
-Every push to the `main` branch can trigger both the **Postman API Regression Suite** and the **Selenium UI Regression Suite**. The workflow can also be triggered manually when regression execution is required.
-
-text
-
-GitHub Actions
-      │
-      ├── Postman / Newman API Tests
-      │
-      └── Selenium / TestNG UI Tests
-
-
-This allows application changes to receive automated regression feedback without manually executing the complete test suites.
-
-# QA Coverage
-
-| Testing Area | Technology | Current Coverage |
-|---|---|---|
-| Functional Testing | Manual / DevTools | Core application workflows |
-| API Testing | Postman + Newman | 12 API requests |
-| UI Automation | Selenium + TestNG | 23 regression tests |
-| Automation Architecture | Page Object Model | Core application pages |
-| Test Execution | Maven | Automated regression suite |
-| Continuous Integration | GitHub Actions | API + UI regression |
-
-# Project Structure
-
-text
-
 BugLens/
-│
-├── api/                 # Serverless API routes
-├── backend/             # Controllers and AI services
-├── src/                 # React frontend
-│
-├── automation/          # Selenium automation framework
-│   ├── pom.xml
-│   ├── testng.xml
-│   └── src/
-│
-├── postman/             # Postman API test collection
-│
+├── api/
+├── backend/
+├── src/
+├── automation/
+├── postman/
 ├── .github/
-│   └── workflows/       # CI regression workflows
-│
 ├── package.json
 └── README.md
 
 
-# Installation
+## Local Setup
 
 ### Frontend
 
-Install the dependencies and start the development server:
-
 bash
-
 npm install
 npm run dev
 
 
 ### Backend
 
-Install the backend dependencies and start the server:
-
 bash
-
 cd backend
 npm install
 node server.js
 
 
-# Tech Stack
+## Author
 
-| Area | Technologies |
-|---|---|
-| Frontend | React, Vite, Tailwind CSS |
-| Backend | Node.js, Express.js |
-| AI | LLM Integration, Structured JSON Generation |
-| API Testing | Postman, Newman |
-| UI Automation | Selenium WebDriver, TestNG |
-| Automation Design | Page Object Model |
-| Build & Execution | Maven |
-| CI/CD | GitHub Actions |
-
-# Design Philosophy
-
-BugLens follows an **AI Recommendation + Human Validation** approach. AI-generated severity, priority, root causes, regression scope, and other insights are treated as recommendations rather than definitive decisions.
-
-AI capabilities are also optional, allowing QA Engineers to choose the depth of analysis required for each issue. This supports lightweight workflows for simple bugs while providing deeper analysis when needed.
-
-# Future Roadmap
-
-Future development may expand BugLens with **Screenshot Analysis, Console Log Analysis, Network Request Analysis, HAR File Support, Jira Integration, Accessibility Suggestions, and Performance Recommendations**.
-
-# Author
-
-Built by a QA Engineer as an end-to-end **AI + Quality Engineering project**, combining AI-assisted QA workflows with practical API testing, UI automation, regression testing, and continuous integration.
+Built as an experimental project combining **AI-assisted QA workflows with software testing and automation**.
