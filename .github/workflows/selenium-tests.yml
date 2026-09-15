@@ -43,9 +43,15 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
 
       - name: Run Selenium Regression Tests
-        run: mvn -f automation/pom.xml test -DbaseUrl="${{ secrets.BUGLENS_URL }}"
+        run: mvn -f automation/pom.xml test -DbaseUrl="https://buglence.vercel.app/"
 
       - name: Upload Selenium Test Reports
         if: always()
